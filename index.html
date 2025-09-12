@@ -18,12 +18,18 @@
       <div
         class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4"
       >
-        <input
-          type="file"
-          id="fileInput"
-          accept=".json"
-          class="border p-2 rounded w-full sm:w-auto cursor-pointer"
-        />
+        <div class="flex flex-col">
+          <input
+            type="file"
+            id="fileInput"
+            accept=".json"
+            class="border p-2 rounded w-full md:w-auto cursor-pointer"
+          />
+          <span class="text-xs text-gray-500 mt-1"
+            >Only JSON files are allowed (max 5 MB)</span
+          >
+        </div>
+
         <button
           id="analyzeBtn"
           class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"

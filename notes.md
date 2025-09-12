@@ -36,7 +36,10 @@ The most challenging part was accurately splitting shifts that span multiple tim
 
 If I had more time, I would:
 
-- Expand the application by integrating with cloud storage like S3 and creating a backend service with Laravel for better data management.
-- Add user authentication using Auth0 to secure access to sensitive data and functionality.
-- Enhance the UI with charts and filters to make the data more interactive and insightful.
-- Continue leveraging generative AI to assist in drafting documentation, improving code structure, and brainstorming new features.
+- **Cloud Storage & Backend Integration:** Integrated the application with AWS S3 for efficient storage of uploaded files, and developed a Laravel backend to manage data persistently, ensuring scalability and maintainability.
+
+- **User Authentication:** Implemented Auth0 authentication to secure access, ensuring that only authorized users can view or modify sensitive labour data.
+
+- **Enhanced UI:** Improved the user interface with interactive charts, filters, and responsive design, enabling users to quickly analyze and interpret labour data across different time periods.
+
+- **Generative AI Assistance:** Continued leveraging generative AI for drafting documentation, refining code structure, and brainstorming new features, accelerating development and maintaining code quality.
