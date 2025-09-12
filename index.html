@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Labour Period Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-4 sm:p-6 font-sans">
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow-md">
+      <h1 class="text-2xl font-bold mb-6 text-center">Labour Period Tracker</h1>
+
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4"
+      >
+        <input
+          type="file"
+          id="fileInput"
+          accept=".json"
+          class="border p-2 rounded w-full sm:w-auto cursor-pointer"
+        />
+        <button
+          id="analyzeBtn"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled
+        >
+          Analyze Labour
+        </button>
+        <button
+          id="downloadBtn"
+          class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          disabled
+        >
+          Download JSON
+        </button>
+        <button
+          id="runTestsBtn"
+          class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+        >
+          Run Tests
+        </button>
+      </div>
+
+      <div id="message" class="text-sm text-red-600 mb-4"></div>
+      <div id="testResults" class="text-sm text-gray-700 mb-4"></div>
+      <div id="output"></div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const analyzeBtn = document.getElementById("analyzeBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const runTestsBtn = document.getElementById("runTestsBtn");
+      const output = document.getElementById("output");
+      const message = document.getElementById("message");
+      const testResults = document.getElementById("testResults");
+
+      let fileData = null;
+      let labourResults = [];
+
+      // --- File upload and validation ---
+      fileInput.addEventListener("change", (e) => {
+        message.textContent = "";
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+          message.textContent = "File size must be less than 5 MB";
+          fileInput.value = "";
+          analyzeBtn.disabled = true;
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            fileData = JSON.parse(reader.result);
+            analyzeBtn.disabled = false;
+            message.textContent = "File loaded successfully!";
+          } catch {
+            message.textContent = "Invalid JSON file.";
+            analyzeBtn.disabled = true;
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      // --- Validation ---
+      function validateData(data) {
+        const errors = [];
+
+        if (!data.employees || !Array.isArray(data.employees)) {
+          errors.push("Missing or invalid 'employees' array.");
+        }
+
+        if (!data.clocks || !Array.isArray(data.clocks)) {
+          errors.push("Missing or invalid 'clocks' array.");
+        }
+
+        const employeeIds = new Set();
+        if (Array.isArray(data.employees)) {
+          data.employees.forEach((emp, index) => {
+            if (emp.id === undefined)
+              errors.push(`Employee at index ${index} is missing 'id'.`);
+            if (!emp.first_name)
+              errors.push(
+                `Employee at index ${index} is missing 'first_name'.`
+              );
+            employeeIds.add(emp.id);
+          });
+        }
+
+        if (Array.isArray(data.clocks)) {
+          data.clocks.forEach((clock, index) => {
+            if (clock.employee_id === undefined)
+              errors.push(`Clock at index ${index} is missing 'employee_id'.`);
+            else if (!employeeIds.has(clock.employee_id))
+              errors.push(
+                `Clock at index ${index} refers to unknown 'employee_id': ${clock.employee_id}.`
+              );
+            if (!clock.clock_in_datetime)
+              errors.push(
+                `Clock at index ${index} is missing 'clock_in_datetime'.`
+              );
+            else if (isNaN(new Date(clock.clock_in_datetime).getTime()))
+              errors.push(
+                `Clock at index ${index} has invalid 'clock_in_datetime': ${clock.clock_in_datetime}`
+              );
+            if (!clock.clock_out_datetime)
+              errors.push(
+                `Clock at index ${index} is missing 'clock_out_datetime'.`
+              );
+            else if (isNaN(new Date(clock.clock_out_datetime).getTime()))
+              errors.push(
+                `Clock at index ${index} has invalid 'clock_out_datetime': ${clock.clock_out_datetime}`
+              );
+            if (clock.clock_in_datetime && clock.clock_out_datetime) {
+              const start = new Date(clock.clock_in_datetime);
+              const end = new Date(clock.clock_out_datetime);
+              if (start >= end)
+                errors.push(
+                  `Clock at index ${index} has 'clock_out_datetime' earlier than 'clock_in_datetime'.`
+                );
+            }
+          });
+        }
+
+        return errors;
+      }
+
+      // --- Analyze ---
+      analyzeBtn.addEventListener("click", () => {
+        if (!fileData) return;
+        const validationErrors = validateData(fileData);
+        if (validationErrors.length > 0) {
+          message.innerHTML = validationErrors
+            .map((e) => `<div>${e}</div>`)
+            .join("");
+          output.innerHTML = "";
+          downloadBtn.disabled = true;
+          return;
+        }
+        message.textContent = "";
+        labourResults = analyzeLabour(fileData);
+        renderResults(labourResults);
+        downloadBtn.disabled = false;
+      });
+
+      // --- Download JSON ---
+      downloadBtn.addEventListener("click", () => {
+        const dataStr =
+          "data:text/json;charset=utf-8," +
+          encodeURIComponent(JSON.stringify(labourResults, null, 2));
+        const a = document.createElement("a");
+        a.href = dataStr;
+        a.download = "labour_hours.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+
+      // --- Core Functions with param/response documentation ---
+
+      /**
+       * analyzeLabour
+       * ------------------
+       * Parameters:
+       *  - data: {
+       *      employees: Array<{ id: number, first_name: string, last_name?: string }>,
+       *      clocks: Array<{ employee_id: number, clock_in_datetime: string, clock_out_datetime: string }>
+       *    }
+       * Returns:
+       *  - Array of employees with labour summary
+       */
+      function analyzeLabour(data) {
+        const { employees, clocks } = data;
+        return employees.map((emp) => {
+          const empClocks = clocks.filter((c) => c.employee_id === emp.id);
+          const grouped = groupByDate(empClocks);
+          const labour = Object.entries(grouped)
+            .map(([date, clocks]) => {
+              const labour_by_time_period = getLabourByTimePeriod(clocks);
+              const total = Object.values(labour_by_time_period).reduce(
+                (a, b) => a + b,
+                0
+              );
+              return {
+                date,
+                total: Math.round(total * 100) / 100,
+                labour_by_time_period,
+              };
+            })
+            .sort((a, b) => a.date.localeCompare(b.date));
+          return {
+            employee_id: emp.id,
+            first_name: emp.first_name,
+            last_name: emp.last_name || "",
+            labour,
+          };
+        });
+      }
+
+      /**
+       * groupByDate
+       * ------------------
+       * Parameters:
+       *  - clocks: Array<{ employee_id: number, clock_in_datetime: string, clock_out_datetime: string }>
+       * Returns:
+       *  - Object keyed by date string (YYYY-MM-DD) with arrays of clock objects
+       */
+      function groupByDate(clocks) {
+        const grouped = {};
+        clocks.forEach((clock) => {
+          const date = new Date(clock.clock_in_datetime)
+            .toISOString()
+            .split("T")[0];
+          if (!grouped[date]) grouped[date] = [];
+          grouped[date].push(clock);
+        });
+        return grouped;
+      }
+
+      /**
+       * getLabourByTimePeriod
+       * ------------------
+       * Parameters:
+       *  - clocks: Array<{ clock_in_datetime: string, clock_out_datetime: string }>
+       * Returns:
+       *  - Object with hours worked in each time period
+       */
+      function getLabourByTimePeriod(clocks) {
+        const periods = { period1: 0, period2: 0, period3: 0, period4: 0 };
+        clocks.forEach((clock) => {
+          let current = new Date(clock.clock_in_datetime);
+          const end = new Date(clock.clock_out_datetime);
+          while (current < end) {
+            const hour = current.getHours();
+            let periodKey = "period4";
+            if (hour >= 5 && hour < 12) periodKey = "period1";
+            else if (hour >= 12 && hour < 18) periodKey = "period2";
+            else if (hour >= 18 && hour < 23) periodKey = "period3";
+
+            const nextHour = new Date(current);
+            nextHour.setHours(current.getHours() + 1, 0, 0, 0);
+            const sliceEnd = nextHour < end ? nextHour : end;
+            const duration = (sliceEnd - current) / (1000 * 60 * 60);
+            periods[periodKey] += duration;
+            current = sliceEnd;
+          }
+        });
+        for (let key in periods)
+          periods[key] = Math.round(periods[key] * 100) / 100;
+        return periods;
+      }
+
+      // --- Render Results ---
+      function renderResults(results) {
+        output.innerHTML = "";
+        results.forEach((emp) => {
+          const empDiv = document.createElement("div");
+          empDiv.className = "mb-6";
+          empDiv.innerHTML = `<h3 class="text-lg font-semibold text-gray-700 mb-2">${emp.first_name} ${emp.last_name}</h3>`;
+          emp.labour.forEach((entry) => {
+            const table = document.createElement("table");
+            table.className =
+              "min-w-full border-collapse border border-gray-300 text-sm mb-4 overflow-x-auto";
+            table.innerHTML = `
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Date</th>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Total Hours</th>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Morning</th>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Afternoon</th>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Evening</th>
+                  <th class="border border-gray-300 px-2 sm:px-4 py-2">Late Night</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.date}</td>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.total}</td>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.labour_by_time_period.period1}</td>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.labour_by_time_period.period2}</td>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.labour_by_time_period.period3}</td>
+                  <td class="border border-gray-300 px-2 sm:px-4 py-2">${entry.labour_by_time_period.period4}</td>
+                </tr>
+              </tbody>
+            `;
+            empDiv.appendChild(table);
+          });
+          output.appendChild(empDiv);
+        });
+      }
+
+      // --- Test Runner ---
+      runTestsBtn.addEventListener("click", () => {
+        const results = [];
+        testResults.innerHTML = "";
+
+        function assertEqual(actual, expected, name) {
+          const pass = JSON.stringify(actual) === JSON.stringify(expected);
+          results.push({ name, pass });
+        }
+
+        // --- Sample Test Cases ---
+        const sampleClocks = [
+          {
+            employee_id: 1,
+            clock_in_datetime: "2025-09-12T05:30:00",
+            clock_out_datetime: "2025-09-12T13:45:00",
+          },
+        ];
+
+        const grouped = groupByDate(sampleClocks);
+        assertEqual(
+          Object.keys(grouped)[0],
+          "2025-09-12",
+          "groupByDate should group by date"
+        );
+
+        const labourPeriods = getLabourByTimePeriod(sampleClocks);
+        const expected = {
+          period1: 6.5,
+          period2: 1.75,
+          period3: 0,
+          period4: 0,
+        };
+        assertEqual(
+          labourPeriods,
+          expected,
+          "getLabourByTimePeriod should calculate correct hours"
+        );
+
+        results.forEach((r) => {
+          const div = document.createElement("div");
+          div.textContent = `${r.pass ? "✅" : "❌"} ${r.name}`;
+          div.className = r.pass ? "text-green-600" : "text-red-600";
+          testResults.appendChild(div);
+        });
+      });
+    </script>
+  </body>
+</html>

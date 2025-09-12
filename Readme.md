@@ -58,14 +58,6 @@ A simple web-based tool to analyze employee shifts and calculate how many hours 
 
 ---
 
-## ✅ Challenges Faced
-
----
-
-## ✅ Future Improvements
-
----
-
 ## ✅ Notes
 
 This solution is designed to be review-friendly and immediately usable. No additional setup is required—just open the HTML file in a browser and start working with the tool.
