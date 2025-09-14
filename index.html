@@ -334,32 +334,104 @@
         }
 
         // --- Sample Test Cases ---
-        const sampleClocks = [
+
+        // ✅ Test 1: Clock spanning multiple periods fully
+        const test1Clocks = [
           {
-            employee_id: 1,
-            clock_in_datetime: "2025-09-12T05:30:00",
-            clock_out_datetime: "2025-09-12T13:45:00",
+            employee_id: 2,
+            clock_in_datetime: "2025-09-13T04:00:00",
+            clock_out_datetime: "2025-09-13T23:30:00",
           },
         ];
+        const result1 = getLabourByTimePeriod(test1Clocks);
+        const expected1 = {
+          period1: 7,
+          period2: 6,
+          period3: 5,
+          period4: 1.5,
+        };
 
-        const grouped = groupByDate(sampleClocks);
         assertEqual(
-          Object.keys(grouped)[0],
-          "2025-09-12",
-          "groupByDate should group by date"
+          result1,
+          expected1,
+          "Test1: Should calculate full-period hours"
         );
 
-        const labourPeriods = getLabourByTimePeriod(sampleClocks);
-        const expected = {
-          period1: 6.5,
-          period2: 1.75,
+        // ✅ Test 2: Clock within one period
+        const test2Clocks = [
+          {
+            employee_id: 3,
+            clock_in_datetime: "2025-09-14T12:15:00",
+            clock_out_datetime: "2025-09-14T15:45:00",
+          },
+        ];
+        const result2 = getLabourByTimePeriod(test2Clocks);
+        const expected2 = {
+          period1: 0,
+          period2: 3.5,
           period3: 0,
           period4: 0,
         };
         assertEqual(
-          labourPeriods,
-          expected,
-          "getLabourByTimePeriod should calculate correct hours"
+          result2,
+          expected2,
+          "Test2: Should calculate hours within one period"
+        );
+
+        // ✅ Test 3: groupByDate with multiple dates
+        const test3Clocks = [
+          {
+            employee_id: 4,
+            clock_in_datetime: "2025-09-15T08:00:00",
+            clock_out_datetime: "2025-09-15T12:00:00",
+          },
+          {
+            employee_id: 4,
+            clock_in_datetime: "2025-09-16T13:00:00",
+            clock_out_datetime: "2025-09-16T17:00:00",
+          },
+        ];
+        const result3 = groupByDate(test3Clocks);
+        assertEqual(
+          Object.keys(result3).length,
+          2,
+          "Test3: Should group clocks by date"
+        );
+
+        // ✅ Test 4: Handling invalid or zero-hour clocks
+        const test4Clocks = [
+          {
+            employee_id: 5,
+            clock_in_datetime: "2025-09-17T10:00:00",
+            clock_out_datetime: "2025-09-17T10:00:00",
+          },
+        ];
+        const result4 = getLabourByTimePeriod(test4Clocks);
+        const expected4 = {
+          period1: 0,
+          period2: 0,
+          period3: 0,
+          period4: 0,
+        };
+        assertEqual(result4, expected4, "Test4: Should handle zero-hour clock");
+
+        // ✅ Test 5: Checking analyzeLabour output structure
+        const test5Data = {
+          employees: [{ id: 6, first_name: "TestUser" }],
+          clocks: [
+            {
+              employee_id: 6,
+              clock_in_datetime: "2025-09-18T06:00:00",
+              clock_out_datetime: "2025-09-18T09:00:00",
+            },
+          ],
+        };
+        const result5 = analyzeLabour(test5Data);
+        assertEqual(result5.length, 1, "Test5: Should return one employee");
+        assertEqual(
+          result5[0].labour.length,
+          1,
+          "Test5: Should return one date entry"
         );
 
         results.forEach((r) => {

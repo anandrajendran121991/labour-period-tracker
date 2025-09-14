@@ -7,7 +7,16 @@ A simple web-based tool to analyze employee shifts and calculate how many hours 
 ## ✅ Features
 
 - Upload a `.json` file containing employee and shift data.
-- Validate file format and limit file size to **5 MB**.
+- Validate file format
+  1. limit file size to **5 MB**
+  2. Make sure `employees` key exists and is an array object
+     1. `id`, - required
+     2. `first_name` - required
+     3. `last_name` - optional
+  3. Make sure `clocks` key exists and is an array object
+     1. `employee_id` - required and exists in the employees object
+     2. `clock_in_datetime` - required and is less than `clock_out_datetime`
+     3. `clock_out_datetime` - required and is greater than `clock_in_datetime`
 - Analyze shifts by splitting hours across four time periods:
   1. Morning (5:00 AM – 12:00 PM)
   2. Afternoon (12:00 PM – 6:00 PM)
