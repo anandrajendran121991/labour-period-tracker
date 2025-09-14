@@ -3,17 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Labour Period Tracker</title>
+    <title>Labour Shift Tracker</title>
     <link
       rel="icon"
       href="https://cdn-icons-png.flaticon.com/512/2920/2920332.png"
       type="image/png"
     />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media (max-width: 640px) {
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
   </head>
   <body class="bg-gray-100 p-4 sm:p-6 font-sans">
     <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow-md">
-      <h1 class="text-2xl font-bold mb-6 text-center">Labour Period Tracker</h1>
+      <h1 class="text-2xl font-bold mb-6 text-center">Labour Shift Tracker</h1>
 
       <div
         class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4"
@@ -148,7 +156,7 @@
             if (clock.clock_in_datetime && clock.clock_out_datetime) {
               const start = new Date(clock.clock_in_datetime);
               const end = new Date(clock.clock_out_datetime);
-              if (start >= end)
+              if (start > end)
                 errors.push(
                   `Clock at index ${index} has 'clock_out_datetime' earlier than 'clock_in_datetime'.`
                 );
@@ -159,7 +167,7 @@
         return errors;
       }
 
-      // --- Analyze ---
+      // --- Analyze Button---
       analyzeBtn.addEventListener("click", () => {
         if (!fileData) return;
         const validationErrors = validateData(fileData);
@@ -177,7 +185,7 @@
         downloadBtn.disabled = false;
       });
 
-      // --- Download JSON ---
+      // --- Download JSON Button ---
       downloadBtn.addEventListener("click", () => {
         const dataStr =
           "data:text/json;charset=utf-8," +
@@ -323,7 +331,7 @@
         });
       }
 
-      // --- Test Runner ---
+      // --- Test Runner similar to jest ---
       runTestsBtn.addEventListener("click", () => {
         const results = [];
         testResults.innerHTML = "";
@@ -333,9 +341,7 @@
           results.push({ name, pass });
         }
 
-        // --- Sample Test Cases ---
-
-        // ✅ Test 1: Clock spanning multiple periods fully
+        // Test 1: Clock spanning multiple periods fully
         const test1Clocks = [
           {
             employee_id: 2,
@@ -357,7 +363,7 @@
           "Test1: Should calculate full-period hours"
         );
 
-        // ✅ Test 2: Clock within one period
+        // Test 2: Clock within one period
         const test2Clocks = [
           {
             employee_id: 3,
@@ -378,7 +384,7 @@
           "Test2: Should calculate hours within one period"
         );
 
-        // ✅ Test 3: groupByDate with multiple dates
+        // Test 3: groupByDate with multiple dates
         const test3Clocks = [
           {
             employee_id: 4,
@@ -398,7 +404,7 @@
           "Test3: Should group clocks by date"
         );
 
-        // ✅ Test 4: Handling invalid or zero-hour clocks
+        // Test 4: Handling invalid or zero-hour clocks
         const test4Clocks = [
           {
             employee_id: 5,
@@ -415,7 +421,7 @@
         };
         assertEqual(result4, expected4, "Test4: Should handle zero-hour clock");
 
-        // ✅ Test 5: Checking analyzeLabour output structure
+        // Test 5: Checking analyzeLabour output structure
         const test5Data = {
           employees: [{ id: 6, first_name: "TestUser" }],
           clocks: [
@@ -436,7 +442,7 @@
 
         results.forEach((r) => {
           const div = document.createElement("div");
-          div.textContent = `${r.pass ? "✅" : "❌"} ${r.name}`;
+          div.textContent = `${r.pass ? "\u2705" : "\u274C"} ${r.name}`;
           div.className = r.pass ? "text-green-600" : "text-red-600";
           testResults.appendChild(div);
         });
