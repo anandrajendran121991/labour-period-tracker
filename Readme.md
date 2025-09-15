@@ -1,4 +1,4 @@
-# Labour Period Tracker
+# Labour Shift Analyzer
 
 A simple web-based tool to analyze employee shifts and calculate how many hours each shift contributes to predefined time periods during the day. This solution is built using **Vanilla JavaScript** and styled with **Tailwind CSS via CDN**.
 

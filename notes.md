@@ -1,4 +1,4 @@
-# Notes for Labour Period Tracker Assignment
+# Notes for Labour Shift Tracker Assignment
 
 ## Why did you choose the language and any other tools that you did for this assignment?
 
@@ -28,7 +28,7 @@ Additionally, I used **generative AI** to create the README and notes based on m
 
 ## What was the most challenging aspect of the assignment for you and why?
 
-The most challenging part was accurately splitting shifts that span multiple time periods and, in some cases, across midnight. Handling date and time boundaries, ensuring that overlapping times are correctly attributed to the right periods, and maintaining precision during aggregation required careful logic and testing.
+The most challenging part was accurately splitting shifts that span multiple time periods and, in some cases, extend across midnight into the next day. Handling both date and time boundaries, ensuring that hours are correctly attributed to the appropriate periods on each affected date, and maintaining precision during aggregation required careful logic and extensive testing.
 
 ---
 
@@ -42,4 +42,4 @@ If I had more time, I would:
 
 - **Enhanced UI:** Improved the user interface with interactive charts, search, filters, pagination, and responsive design, enabling users to quickly analyze and interpret labour data across different time periods.
 
-- **Generative AI Assistance & hugging Models:** Continued leveraging generative AI for drafting documentation, refining code structure, and brainstorming new features, accelerating development and maintaining code quality. Also make use of trained models to add new features which can make the application more impactful
+- **Generative AI Assistance & ML Models:** Continued leveraging generative AI for drafting documentation, refining code structure, and brainstorming new features, while also utilizing trained models to implement impactful functionality that enhances the application’s capabilities and user experience.

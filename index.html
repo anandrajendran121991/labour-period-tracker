@@ -250,11 +250,31 @@
       function groupByDate(clocks) {
         const grouped = {};
         clocks.forEach((clock) => {
-          const date = new Date(clock.clock_in_datetime)
-            .toISOString()
-            .split("T")[0];
-          if (!grouped[date]) grouped[date] = [];
-          grouped[date].push(clock);
+          let current = new Date(clock.clock_in_datetime);
+          const end = new Date(clock.clock_out_datetime);
+
+          while (current < end) {
+            // Get YYYY-MM-DD date
+            const yyyy = current.getFullYear();
+            const mm = String(current.getMonth() + 1).padStart(2, "0");
+            const dd = String(current.getDate()).padStart(2, "0");
+            const dateKey = `${yyyy}-${mm}-${dd}`;
+
+            // End of current day or clock out
+            let sliceEnd = new Date(current);
+            sliceEnd.setHours(23, 59, 59, 999);
+            if (sliceEnd > end) sliceEnd = end;
+
+            if (!grouped[dateKey]) grouped[dateKey] = [];
+            grouped[dateKey].push({
+              employee_id: clock.employee_id,
+              clock_in_datetime: current,
+              clock_out_datetime: sliceEnd,
+            });
+
+            // Move to next day
+            current = new Date(sliceEnd.getTime() + 1);
+          }
         });
         return grouped;
       }
