@@ -10,7 +10,7 @@ A simple web-based tool to analyze employee shifts and calculate how many hours 
 - Validate file format
   1. limit file size to **5 MB**
   2. Make sure `employees` key exists and is an array object
-     1. `id`, - required
+     1. `id` - required
      2. `first_name` - required
      3. `last_name` - optional
   3. Make sure `clocks` key exists and is an array object
