@@ -8,7 +8,7 @@ For this assignment, I chose **Vanilla JavaScript** along with **Tailwind CSS** 
 - No build tools or setup are required, making it easier for reviewers to test the solution directly in the browser.
 - Tailwind CSS provides a fast and clean way to style the interface without additional configuration.
 
-If I had the freedom to expand the project, I would have chosen **React** as the frontend framework to provide a more structured interface with better state management and modular components. I would integrate **S3 client upload** functionality to store uploaded files securely, use **Laravel** as the backend API server for processing shifts, and return the analyzed data to the React frontend. The entire solution would be containerized with **Docker** services for easy deployment, and authentication would be handled with **Auth0** to protect sensitive routes and data.
+If I had the freedom to expand the project, I would have chosen **React** as the frontend library to provide a more structured interface with better state management and modular components. I would integrate **S3 client upload** functionality to store uploaded files securely, use **Laravel** as the backend API server for processing shifts, and return the analyzed data to the React frontend. The entire solution would be containerized with **Docker** services for easy deployment, and authentication would be handled with **Auth0** to protect sensitive routes and data.
 
 Additionally, I used **generative AI** to create the README and notes based on my own prompts, which helped structure my thoughts and ensure clarity in the documentation.
 
@@ -40,6 +40,6 @@ If I had more time, I would:
 
 - **User Authentication:** Implemented Auth0 authentication to secure access, ensuring that only authorized users can view or modify sensitive labour data.
 
-- **Enhanced UI:** Improved the user interface with interactive charts, filters, and responsive design, enabling users to quickly analyze and interpret labour data across different time periods.
+- **Enhanced UI:** Improved the user interface with interactive charts, search, filters, pagination, and responsive design, enabling users to quickly analyze and interpret labour data across different time periods.
 
-- **Generative AI Assistance:** Continued leveraging generative AI for drafting documentation, refining code structure, and brainstorming new features, accelerating development and maintaining code quality.
+- **Generative AI Assistance & hugging Models:** Continued leveraging generative AI for drafting documentation, refining code structure, and brainstorming new features, accelerating development and maintaining code quality. Also make use of trained models to add new features which can make the application more impactful
